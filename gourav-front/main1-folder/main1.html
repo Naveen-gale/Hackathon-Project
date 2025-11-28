@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard | Fatima Degree College</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-text">
+      <h2>Welcome, <span>Ananya Sharma</span></h2>
+      <p>Roll: 21BC1023</p>
+    </div>
+    <p class="date">Friday, 28 Nov 2025</p>
+  </header>
+
+  <main class="container">
+
+    <section class="attendance-card">
+      <h3>Overall Attendance</h3>
+      <div class="circle">87%</div>
+    </section>
+
+    <section class="alerts-box">
+      <h3>Alerts</h3>
+      <p>
+        You are close to attendance shortage in Data Structures.
+        Attend the next 3 days regularly.
+      </p>
+    </section>
+
+    <section class="dropdown">
+      <button class="dropbtn" onclick="toggleDropdown()">
+        View Full Attendance ▼
+      </button>
+      <div id="dropdown-content" class="dropdown-content">
+        <p>Data Structures – 82%</p>
+        <p>DBMS – 90%</p>
+        <p>Operating Systems – 80%</p>
+        <p>Mathematics – 95%</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    © 2025 Fatima Degree College
+  </footer>
+
+  <script>
+    function toggleDropdown() {
+      document.getElementById("dropdown-content").classList.toggle("show");
+    }
+  </script>
+
+</body>
+</html>
