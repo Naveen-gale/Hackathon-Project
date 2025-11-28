@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Registration</title>
+
+<style>
+    :root{
+        --bg-a:#001f4d;
+        --bg-b:#98aeca;
+        --bg-c:#0073e6;
+        --card:#ffffffd9;
+        --accent:#0b63d6;
+        --muted:#333;
+    }
+    body{
+        margin:0;
+        height:100vh;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-family:Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, var(--bg-a), var(--bg-b), var(--bg-c));
+    }
+    .box{
+        width:350px;
+        background:var(--card);
+        padding:25px;
+        border-radius:14px;
+        box-shadow:0 8px 25px rgba(0,0,0,0.25);
+        text-align:center;
+        backdrop-filter: blur(5px);
+    }
+    h2{
+        margin-bottom:15px;
+        color:#001f4d;
+    }
+    input{
+        width:100%;
+        padding:12px;
+        margin:8px 0;
+        border-radius:8px;
+        border:1px solid #ccc;
+        font-size:14px;
+    }
+    button{
+        width:100%;
+        padding:12px;
+        margin-top:10px;
+        background:var(--accent);
+        border:none;
+        color:white;
+        border-radius:8px;
+        font-size:16px;
+        cursor:pointer;
+        transition:0.3s;
+    }
+    button:hover{
+        background:#003f9e;
+    }
+    .msg{
+        margin-top:10px;
+        font-size:14px;
+        color:green;
+        display:none;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>Student Registration</h2>
+
+    <input type="text" id="studentId" placeholder="Enter Student ID" required>
+    <input type="text" id="studentName" placeholder="Enter Full Name" required>
+
+    <button onclick="registerStudent()">Sign Up</button>
+
+    <p class="msg" id="successMsg">Student Registered Successfully ✔</p>
+</div>
+
+<script>
+function registerStudent(){
+    const id = document.getElementById("studentId").value.trim();
+    const name = document.getElementById("studentName").value.trim();
+    const successMsg = document.getElementById("successMsg");
+
+    if(id === "" || name === ""){
+        alert("Please fill all fields!");
+        return;
+    }
+
+    // Save in localStorage
+    const KEY = "attendance_students_v1";
+    let list = JSON.parse(localStorage.getItem(KEY) || "[]");
+
+    // Check if student already exists
+    const exists = list.some(s => s.student_id.toLowerCase() === id.toLowerCase());
+    if(exists){
+        alert("Student
