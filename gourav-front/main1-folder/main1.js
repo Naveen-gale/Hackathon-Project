@@ -2,7 +2,7 @@
 const sampleStudentData = {
   name: "Ananya Sharma",
   roll: "21BC1023",
-  overallAttendance: 87,
+  overallAttendance: 65,
 };
 
 // Set current date
