@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin Login — Attendance Panel</title>
+<style>
+  :root{
+    --bg:#f3f6fb; --card:#fff; --accent:#0b79ff; --muted:#6b7280; --danger:#ef4444;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#001f4d,#98aeca,#0073e6);color:#0b1220}
+  .panel{width:100%;max-width:420px;padding:22px;border-radius:14px;background:var(--card);box-shadow:0 10px 40px rgba(2,6,23,0.2)}
+  h1{margin:0 0 6px;font-size:20px}
+  p.lead{margin:0 0 18px;color:var(--muted);font-size:13px}
+  label{display:block;font-size:13px;margin-bottom:6px;color:#0b1220}
+  input[type="text"], input[type="password"]{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #e6e9ef;margin-bottom:12px;font-size:14px}
+  .row{display:flex;gap:8px}
+  button{padding:10px 12px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:600;cursor:pointer}
+  button.ghost{background:transparent;border:1px solid #e6e9ef;color:inherit}
+  .muted{color:var(--muted);font-size:13px;margin-top:8px}
+  .danger{color:var(--danger);font-weight:700}
+  .tiny{font-size:12px}
+  .center{text-align:center}
+  .link{background:none;border:0;color:var(--accent);cursor:pointer;padding:0;font-weight:600}
+</style>
+</head>
+<body>
+  <div class="panel" role="main" aria-labelledby="title">
+    <h1 id="title">Admin — Attendance Panel</h1>
+    <p class="lead" id="subtitle">Secure admin access to manage students and attendance.</p>
+
+    <!-- Setup form (shown only when no admin exists) -->
+    <form id="setupForm" style="display:none" onsubmit="return false;">
+      <label for="setupUser">Create admin username</label>
+      <input id="setupUser" type="text" autocomplete="username" placeholder="admin" required />
+      <label for="setupPass">Create password</label>
+      <input id="setupPass" type="password" autocomplete="new-password" placeholder="strong password" required />
+      <label for="setupPass2">Confirm password</label>
+      <input id="setupPass2" type="password" autocomplete="new-password" placeholder="confirm password" required />
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button id="doSetup">Create Admin</button>
+        <button id="resetStorage" class="ghost" type="button">Reset </button>
+      </div>
+      <p class="muted tiny">This creates a local admin account in your browser (for demo/local use). For production use a real backend.</p>
+    </form>
+
+    <!-- Login form -->
+    <form id="loginForm" onsubmit="return false;">
+      <label for="user">Username</label>
+      <input id="user" type="text" autocomplete="username" placeholder="admin" required />
+      <label for="pass">Password</label>
+      <input id="pass" type="password" autocomplete="current-password" placeholder="password" required />
+      <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+        <button id="doLogin">Sign in</button>
+        <button id="forgotBtn" class="ghost" type="button">Forgot?</button>
+      </div>
+      <p id="message" class="muted tiny" style="margin-top:8px"></p>
+    </form>
+
+    <p class="muted center tiny" style="margin-top:14px">
+      After login you'll be redirected to your admin page.
+    </p>
+  </div>
+
+<script>
+/*
+  Simple admin login page (client-only):
+  - Stores admin credentials in localStorage as {username, passwordHash}
+  - Uses SHA-256 via SubtleCrypto to hash passwords in-browser
+  - sessionStorage flag 'isAdmin' set on successful login
+  - Redirects to ./adminpanel/index.html (adjust if your path differs)
+*/
+
+/* ======= Configuration ======= */
+const STORAGE_KEY = 'admin_account_v1';
+const REDIRECT_URL = './adminpanel/index.html'; // adjust if your admin panel path differs
+const MAX_FAILED = 5;
+const LOCKOUT_MS = 30 * 1000; // 30 seconds lockout after too many fails
+
+/* ======= Helpers ======= */
+const $ = id => document.getElementById(id);
+
+function bufToHex(buffer) {
+  const bytes = new Uint8Array(buffer);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function hashPassword(password) {
+  const enc = new TextEncoder().encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', enc);
+  return bufToHex(hashBuffer);
+}
+
+/* ======= Storage helpers ======= */
+function getStoredAccount() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+function saveAccount(obj) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+}
+function clearAccount() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+/* ======= Lockout / attempts ======= */
+function getAttempts() {
+  const v = sessionStorage.getItem('admin_attempts');
+  return v ? JSON.parse(v) : {count:0, lockedUntil:0};
+}
+function setAttempts(obj) {
+  sessionStorage.setItem('admin_attempts', JSON.stringify(obj));
+}
+function resetAttempts() {
+  setAttempts({count:0, lockedUntil:0});
+}
+
+/* ======= UI refs ======= */
+const setupForm = $('setupForm');
+const setupUser = $('setupUser');
+const setupPass = $('setupPass');
+const setupPass2 = $('setupPass2');
+const doSetup = $('doSetup');
+const resetStorage = $('resetStorage');
+
+const loginForm = $('loginForm');
+const userInput = $('user');
+const passInput = $('pass');
+const doLogin = $('doLogin');
+const forgotBtn = $('forgotBtn');
+const messageEl = $('message');
+
+/* ======= Init UI state ======= */
+function init() {
+  const acc = getStoredAccount();
+  if (!acc) {
+    // show setup form
+    setupForm.style.display = 'block';
+    loginForm.style.display = 'none';
+    messageEl.textContent = 'No admin found — create one now.';
+  } else {
+    setupForm.style.display = 'none';
+    loginForm.style.display = 'block';
+    messageEl.textContent = '';
+  }
+
+  const attempts = getAttempts();
+  if (attempts.lockedUntil && Date.now() < attempts.lockedUntil) {
+    const sec = Math.ceil((attempts.lockedUntil - Date.now()) / 1000);
+    showMessage(`Too many failed attempts. Try again in ${sec}s`, true);
+    setLockedState(true);
+  } else {
+    setLockedState(false);
+  }
+}
+function setLockedState(enabled) {
+  userInput.disabled = passInput.disabled = doLogin.disabled = enabled;
+}
+
+/* ======= Setup handler ======= */
+doSetup.addEventListener('click', async () => {
+  const uname = setupUser.value.trim();
+  const p1 = setupPass.value;
+  const p2 = setupPass2.value;
+  if (!uname || !p1 || !p2) { alert('Please fill all fields'); return; }
+  if (p1 !== p2) { alert('Passwords do not match'); return; }
+  if (p1.length < 6) { if(!confirm('Password less than 6 characters. Continue?')) return; }
+
+  const hash = await hashPassword(p1);
+  saveAccount({ username: uname, passwordHash: hash, createdAt: new Date().toISOString() });
+  setupUser.value = setupPass.value = setupPass2.value = '';
+  init();
+  showMessage('Admin account created. You can now log in.');
+});
+
+/* reset storage (danger — clears account) */
+resetStorage.addEventListener('click', () => {
+  if (!confirm('This will remove the stored admin account (localStorage). Continue?')) return;
+  clearAccount();
+  resetAttempts();
+  init();
+});
+
+/* ======= Login handler ======= */
+doLogin.addEventListener('click', async () => {
+  const attempts = getAttempts();
+  if (attempts.lockedUntil && Date.now() < attempts.lockedUntil) {
+    const sec = Math.ceil((attempts.lockedUntil - Date.now()) / 1000);
+    showMessage(`Locked for ${sec}s due to failed attempts`, true);
+    return;
+  }
+
+  const uname = userInput.value.trim();
+  const pass = passInput.value;
+  if (!uname || !pass) { showMessage('Enter both username and password', true); return; }
+
+  const acc = getStoredAccount();
+  if (!acc) { showMessage('No admin account found — create one', true); init(); return; }
+
+  const hash = await hashPassword(pass);
+  if (uname === acc.username && hash === acc.passwordHash) {
+    // success
+    sessionStorage.setItem('isAdmin', '1');
+    resetAttempts();
+
+    showMessage('Login successful — redirecting...', false);
+    // short delay then redirect
+    setTimeout(() => {
+      // redirect to the admin panel (adjust path if needed)
+      window.location.href = REDIRECT_URL;
+    }, 700);
+  } else {
+    // failed
+    attempts.count = (attempts.count || 0) + 1;
+    if (attempts.count >= MAX_FAILED) {
+      attempts.lockedUntil = Date.now() + LOCKOUT_MS;
+      showMessage(`Too many failed attempts. Locked for ${Math.ceil(LOCKOUT_MS/1000)}s`, true);
+      setLockedState(true);
+      // automatically clear lock when time passes
+      setTimeout(() => {
+        resetAttempts();
+        setLockedState(false);
+        showMessage('You can try again now');
+      }, LOCKOUT_MS + 200);
+    } else {
+      showMessage(`Login failed (${attempts.count}/${MAX_FAILED})`, true);
+    }
+    setAttempts(attempts);
+  }
+});
+
+/* ======= Forgot (simple local reset) ======= */
+forgotBtn.addEventListener('click', () => {
+  if (!confirm('No server is available: forgot will delete local stored admin account so you can recreate it. Continue?')) return;
+  clearAccount();
+  resetAttempts();
+  init();
+});
+
+/* ======= Utilities ======= */
+function showMessage(msg, isError=false) {
+  messageEl.textContent = msg;
+  messageEl.classList.toggle('danger', !!isError);
+}
+
+/* ======= On load ======= */
+init();
+
+/* ======= For production: Replace client-only logic above with server calls =======
+  Example flow:
+   - POST /api/admin/login  { username, password } -> server validates (bcrypt) and returns session token (httpOnly cookie)
+   - Use server-side endpoints for admin actions. Never store password on client.
+======================================= */
+
+</script>
+</body>
+</html>
