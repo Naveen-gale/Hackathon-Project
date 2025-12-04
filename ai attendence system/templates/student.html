@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Dashboard</title>
+    <style>
+        body { background:#111; color:#fff; text-align:center; font-family:Arial; }
+        .card {
+            margin-top:50px;
+            padding:25px;
+            width:380px;
+            border-radius:12px;
+            background:#1e1e1e;
+            margin-left:auto;
+            margin-right:auto;
+            border:2px solid #00e676;
+        }
+        h2 { color:#00ffa2; }
+        .btn { margin-top:15px; padding:10px 20px; background:#00e676; color:black; border-radius:6px; text-decoration:none; font-weight:bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Student Dashboard</h2>
+    <p><b>Name:</b> {{ name }}</p>
+    <p><b>Roll No:</b> {{ roll }}</p>
+    <p><b>Attended Classes:</b> {{ attended }}</p>
+    <p><b>Total Classes:</b> {{ max_attendance }}</p>
+    <p><b>Attendance %:</b> {{ percentage }}%</p>
+
+    <p style="color: {{ 'lime' if status == 'Eligible' else 'red' }}">
+        Status: {{ status }}
+    </p>
+
+    <!-- <a class="btn" href="/attendance">Mark Attendance</a> -->
+</div>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>AI Attendance - Main</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="card">
+            <h1 class="college-name">Fatima  College</h1>
+            <p class="subtitle">AI-Based Attendance Monitoring System</p>
+
+            <div class="btn-group">
+                <a href="/attendance" class="btn btn-primary">Mark Attendance</a>
+                <a href="/admin" class="btn btn-outline">Admin</a>
+                <a href="/register" class="btn btn-primary">Register Student</a>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

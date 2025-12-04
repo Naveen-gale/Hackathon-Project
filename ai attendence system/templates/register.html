@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - AI Attendance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <div class="page-wrapper">
+        <form class="card" action="/register" method="POST" enctype="multipart/form-data">
+            <h2>Student Register</h2>
+
+            <label>College Name</label>
+            <input type="text" name="college" placeholder="Enter college name" required>
+
+            <label>Student Name</label>
+            <input type="text" name="name" placeholder="Enter student name" required>
+
+            <label>Roll Number</label>
+            <input type="text" name="roll" placeholder="Enter roll no" required>
+
+            <label>Student Gmail</label>
+            <input type="email" name="gmail" placeholder="Enter student Gmail" required>
+
+            <label>Photo</label>
+            <input type="file" name="photo" accept="image/*" required>
+
+            <button type="submit" class="btn btn-primary">Register</button>
+
+            <a href="/login" class="btn btn-outline">Already Registered? Login</a>
+
+        </form>
+    </div>
+</body>
+</html>

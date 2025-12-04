@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+<div class="page-wrapper">
+    <form class="card" action="/login" method="POST">
+        <h2>Student Login</h2>
+
+        <label>Student Name</label>
+        <input type="text" name="name" placeholder="Enter your name" required>
+
+        <label>Roll Number</label>
+        <input type="text" name="roll" placeholder="Enter roll no" required>
+
+        <button type="submit" class="btn btn-primary">Login</button>
+
+        <a href="/register" class="btn btn-outline">New User? Register</a>
+        <a href="/" class="btn btn-outline">Back</a>
+    </form>
+</div>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div style="color:#00ff7f; font-size:18px; margin-bottom:10px; font-weight:bold;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+</body>
+</html>

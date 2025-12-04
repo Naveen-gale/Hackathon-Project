@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mark Attendance</title>
+    <style>
+        body {
+            background:#0d0d0d;
+            color:#fff;
+            text-align:center;
+            font-family:Arial, sans-serif;
+            margin:0;
+            padding:0;
+        }
+
+        h2 {
+            margin-top:30px;
+            font-size:28px;
+            color:#00e676;
+            text-shadow:0 0 10px #00e676;
+        }
+
+        video {
+            margin-top:20px;
+            border:3px solid #0aff9d;
+            border-radius:12px;
+            box-shadow:0px 0px 20px rgba(0,255,167,0.4);
+        }
+
+        button, a {
+            padding:12px 22px;
+            border:none;
+            border-radius:8px;
+            color:white;
+            font-size:16px;
+            cursor:pointer;
+            text-decoration:none;
+            margin-top:15px;
+            display:inline-block;
+            font-weight:bold;
+            transition:0.3s;
+        }
+
+        .verify { background:#14c38e; }
+        .verify:hover { background:#0fa370; }
+
+        .back { background:#333; }
+        .back:hover { background:#222; }
+
+        #resultBox {
+            margin-top:25px;
+            padding:20px;
+            border-radius:12px;
+            width:380px;
+            margin-left:auto;
+            margin-right:auto;
+            display:none;
+            animation:fadeIn 0.5s;
+            background:#121212;
+            border:2px solid #1bff9c;
+            box-shadow:0 0 15px rgba(0,255,157,0.4);
+        }
+
+        #nameText, #rollText {
+            font-size:20px;
+            margin:8px 0;
+            font-weight:bold;
+        }
+
+        #message {
+            margin-top:10px;
+            font-size:20px;
+            font-weight:bold;
+        }
+
+        .success { color:#00e676; }
+        .error { color:#ff1744; }
+
+        @keyframes fadeIn {
+            from { opacity:0; transform:scale(0.95); }
+            to   { opacity:1; transform:scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+<h2>AI Attendance System</h2>
+
+<video id="camera" width="360" height="300" autoplay></video>
+
+<br>
+<button class="verify" onclick="captureImage()">Capture & Verify</button>
+<a href="/" class="back">Back</a>
+
+<div id="resultBox">
+    <div id="nameText"></div>
+    <div id="rollText"></div>
+    <p id="message"></p>
+</div>
+
+<script>
+// Enable camera
+const video = document.getElementById("camera");
+navigator.mediaDevices.getUserMedia({ video:true })
+.then(stream => video.srcObject = stream);
+
+function captureImage() {
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+
+    const imgData = canvas.toDataURL("image/jpeg");
+
+    fetch("/capture_image", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ img: imgData })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const box = document.getElementById("resultBox");
+        const msg = document.getElementById("message");
+
+        box.style.display = "block";
+        msg.innerText = data.message;
+
+        if(data.status === "success") {
+            msg.className = "success";
+            document.getElementById("nameText").innerText = "Name: " + data.name;
+            document.getElementById("rollText").innerText = "Roll: " + data.roll;
+
+            // AUTO REDIRECT AFTER 2 SECONDS
+            setTimeout(() => {
+                window.location.href = "/";
+            }, 4000);
+
+        } else {
+            msg.className = "error";
+            document.getElementById("nameText").innerText = "";
+            document.getElementById("rollText").innerText = "";
+        }
+    });
+}
+</script>
+
+</body>
+</html>
